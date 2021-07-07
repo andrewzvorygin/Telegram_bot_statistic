@@ -1,5 +1,5 @@
-from loader import bot
-from config import admin_id
+from bot.loader import bot
+from bot.config import admin_id
 
 
 async def on_shutdown(dp):
@@ -12,6 +12,6 @@ async def on_startup(dp):
 
 if __name__ == '__main__':
     from aiogram import executor
-    from handlers import dp
+    from bot.handlers import dp
 
     executor.start_polling(dp, on_shutdown=on_shutdown, on_startup=on_startup)

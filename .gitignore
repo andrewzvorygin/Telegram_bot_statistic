@@ -1,9 +1,9 @@
-config.py
+bot/config.py
 .idea/
 __pycache__/
-handlers/__pycache__/
-channel_messages.json
-channel_users.json
-config.ini
-РђРЅРґСЂРµР№ Р—РІРѕСЂС‹РіРёРЅ.session
-РђРЅРґСЂРµР№ Р—РІРѕСЂС‹РіРёРЅ.session-journal
+bot/handlers/__pycache__/
+telephone/channel_messages.json
+telephone/channel_users.json
+telephone/config.ini
+telephone/РђРЅРґСЂРµР№ Р—РІРѕСЂС‹РіРёРЅ.session
+telephone/РђРЅРґСЂРµР№ Р—РІРѕСЂС‹РіРёРЅ.session-journal
