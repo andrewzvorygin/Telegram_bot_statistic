@@ -65,7 +65,7 @@ async def dump_all_messages(channel):
 
     all_messages = []  # список всех сообщений
     total_messages = 0
-    total_count_limit = 0  # поменяйте это значение, если вам нужны не все сообщения
+    total_count_limit = 90  # поменяйте это значение, если вам нужны не все сообщения
 
     class DateTimeEncoder(json.JSONEncoder):
         '''Класс для сериализации записи дат в JSON'''
