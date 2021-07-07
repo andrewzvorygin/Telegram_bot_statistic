@@ -1,0 +1,9 @@
+config.py
+.idea/
+__pycache__/
+handlers/__pycache__/
+channel_messages.json
+channel_users.json
+config.ini
+РђРЅРґСЂРµР№ Р—РІРѕСЂС‹РіРёРЅ.session
+РђРЅРґСЂРµР№ Р—РІРѕСЂС‹РіРёРЅ.session-journal
