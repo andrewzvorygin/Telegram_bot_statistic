@@ -2,12 +2,13 @@ from bot.loader import dp, bot
 from aiogram.types import Message, CallbackQuery
 from bot.keyboards.choice_states import choice, state_stat
 from bot.keyboards.user_count import count_day
-from bot.keyboards.record_count import count_record
+from bot.keyboards.record_count import count_record, interval_record, close_all
 from bot.states import Statistic
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 import logging
 from telephone.prob import get_graph_path
+from os import remove
 
 
 @dp.message_handler(commands=["start"])
@@ -82,28 +83,56 @@ async def choice_count_record(call: CallbackQuery, state: FSMContext):
                               reply_markup=count_record)
 
 
-@dp.callback_query_handler(state=Statistic.NumberViewsRecord)
-async def get_answer_graph(call: CallbackQuery = None, message: Message = None, state: FSMContext = None):
-    await call.answer(cache_time=60)
-    data = await state.get_data()
-    print(data)
-    chat = data['url']
-    path = 'C:\\Users\\andre\\OneDrive\\Рабочий стол\\Telegram_bot_statistic\\' + await get_graph_path(chat, limit=50)
-    print(path)
-    if call is not None:
-        answer = 'все дни'
-    else:
-        answer = f'{message} дней'
-    await call.message.answer(f'Вы выбрали статистику за {answer}')
-    with open(path, 'rb') as photo:
-        await call.message.answer_photo(photo)
-
-
 @dp.callback_query_handler(text_contains="close", state=Statistic)
 async def close(call: CallbackQuery, state: FSMContext):
     await call.answer(cache_time=60)
     await state.finish()
     await call.message.answer('Закрыли')
+
+
+@dp.callback_query_handler(text_contains="interval", state=Statistic.NumberViewsRecord)
+async def set_interval_record(call: CallbackQuery, state: FSMContext):
+    await call.answer(cache_time=60)
+    logging.info('Вводят интервал статистики по постам')
+    await Statistic.RecordInterval.set()
+    await call.message.answer('Введите интеравал id сообщений через пробел, '
+                              'с какого и по какое хотите посмотреть статистику.\n'
+                              '<b>Пример: </b>5 10. \nС 5 и по 10 сообщение вы увидите статистику')
+
+
+@dp.callback_query_handler(state=Statistic.NumberViewsRecord)
+async def get_answer_graph_limit(call: CallbackQuery = None, state: FSMContext = None):
+    await call.answer(cache_time=60)
+    data = await state.get_data()
+    chat = data['url']
+    limit = int(call.data)
+    path = await get_graph_path(chat, limit=limit)
+    path = 'C:\\Users\\andre\\OneDrive\\Рабочий стол\\Telegram_bot_statistic\\' + path
+    with open(path, 'rb') as photo:
+        await call.message.answer_photo(photo, reply_markup=interval_record)
+    remove(path)
+
+
+@dp.message_handler(state=Statistic.RecordInterval)
+async def get_graph_id_record(message: Message, state: FSMContext = None):
+    logging.info('Ввели интервал, обрабатываемЧ')
+    data = await state.get_data()
+    chat = data['url']
+    try:
+        min_id, max_id = map(int, message.text.split())
+        if max_id <= min_id:
+            await message.answer('Неверно указан интервал', reply_markup=close_all)
+        else:
+            path = await get_graph_path(chat, min_id=min_id, max_id=max_id)
+            path = 'C:\\Users\\andre\\OneDrive\\Рабочий стол\\Telegram_bot_statistic\\' + path
+            with open(path, 'rb') as photo:
+                await message.answer_photo(photo, reply_markup=close_all)
+            remove(path)
+    except Exception:
+        await message.answer('Неверно указан интервал', reply_markup=close_all)
+
+
+
 
 
 @dp.message_handler()

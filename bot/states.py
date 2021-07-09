@@ -5,3 +5,4 @@ class Statistic(StatesGroup):
     UserCountChange = State()
     NumberViewsRecord = State()
     ChoiceChannel = State()
+    RecordInterval = State()

@@ -8,7 +8,7 @@ api_hash = api_hash
 username = username
 
 
-async def get_graph_path(chat, limit=0, min_id=0, max_id=0):
+async def get_graph_path(chat, limit=1000000, min_id=0, max_id=0):
     count_views, record_id = [], []
     async with TelegramClient(username, api_id, api_hash) as client:
         async for message in client.iter_messages(chat, limit=limit, min_id=min_id, max_id=max_id):
@@ -22,14 +22,13 @@ async def get_graph_path(chat, limit=0, min_id=0, max_id=0):
 
 def draw_graph(count_views, record_id):
     name = id(record_id)
-    path = f'telephone\\{name}.jpg'
+    path = f'telephone\\Графики\\{name}.jpg'
     plt.plot(record_id, count_views)
     plt.title('Статистика просмотров постов', fontsize=15, )
     plt.xlabel('ID поста', fontsize=12, color='blue')
     plt.ylabel('Количество просмотров', fontsize=12, color='blue')
     plt.grid(True)
     plt.savefig(path)
+    plt.close()
     return path
 
-
-get_graph_path('https://t.me/urfu_ru', limit=50)
