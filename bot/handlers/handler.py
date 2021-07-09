@@ -1,4 +1,4 @@
-from bot.loader import dp
+from bot.loader import dp, bot
 from aiogram.types import Message, CallbackQuery
 from bot.keyboards.choice_states import choice, state_stat
 from bot.keyboards.user_count import count_day
@@ -7,6 +7,7 @@ from bot.states import Statistic
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 import logging
+from telephone.prob import get_graph_path
 
 
 @dp.message_handler(commands=["start"])
@@ -34,7 +35,6 @@ async def get_channel(message: Message, state: FSMContext):
 async def false_channel(call: CallbackQuery):
     logging.info('Неверный канал, выбор нового канала')
     await call.answer(cache_time=60)
-    # await call.message.answer('Пидора ответ')
     await call.message.answer('Выберите другой канал для анализа')
 
 
@@ -42,10 +42,6 @@ async def false_channel(call: CallbackQuery):
 async def true_channel(call: CallbackQuery):
     logging.info('Верный канал, выбор действия')
     await call.answer(cache_time=60)
-    # await call.message.answer('Пизда')
-    # await call.message.answer('Жди ответа ещё ничего не работает')
-    # await call.message.answer('Ладно, отвечу, но с тебя вино этому господину @coronovirus_suka выбери,'
-    #                           ' что хочешь чекнуть', reply_markup=state_stat)
     await call.message.answer('Статистику чего вы хотите изучить?', reply_markup=state_stat)
 
 
@@ -55,10 +51,6 @@ async def choice_count_day(call: CallbackQuery, state: FSMContext):
     logging.info('Выбирают количество дней')
     await call.answer(cache_time=60)
     await Statistic.UserCountChange.set()
-    # await call.message.answer('За какое количество дней ты хочешь статистику по пользователям?\n'
-    #                           'Выбери из предложенного или введи своё значение \n'
-    #                           '<b>ВВОДИТЬ ТОЛЬКО ЧИСЛО - КОЛИЧЕСТВО ДНЕЙ, НО ЭТА ХУЕТА НЕ РАБОТАЕТ, '
-    #                           'ПОЭТОМУ ВЫБИРАЕМ ИЗ КНОПОК</b>', reply_markup=count_day)
     await call.message.answer('За какое количество дней вы хотите получить статистику о пользователях?\n'
                               'Выбери из предложенного или введи своё значение', reply_markup=count_day)
 
@@ -91,17 +83,24 @@ async def choice_count_record(call: CallbackQuery, state: FSMContext):
 
 
 @dp.callback_query_handler(state=Statistic.NumberViewsRecord)
-async def choice_count_day(call: CallbackQuery = None, message: Message = None):
+async def get_answer_graph(call: CallbackQuery = None, message: Message = None, state: FSMContext = None):
     await call.answer(cache_time=60)
+    data = await state.get_data()
+    print(data)
+    chat = data['url']
+    path = 'C:\\Users\\andre\\OneDrive\\Рабочий стол\\Telegram_bot_statistic\\' + await get_graph_path(chat, limit=50)
+    print(path)
     if call is not None:
         answer = 'все дни'
     else:
         answer = f'{message} дней'
     await call.message.answer(f'Вы выбрали статистику за {answer}')
+    with open(path, 'rb') as photo:
+        await call.message.answer_photo(photo)
 
 
 @dp.callback_query_handler(text_contains="close", state=Statistic)
-async def choice_count_day(call: CallbackQuery, state: FSMContext):
+async def close(call: CallbackQuery, state: FSMContext):
     await call.answer(cache_time=60)
     await state.finish()
     await call.message.answer('Закрыли')
@@ -109,5 +108,4 @@ async def choice_count_day(call: CallbackQuery, state: FSMContext):
 
 @dp.message_handler()
 async def exo(message: Message):
-    # await message.answer('Пиши что хочешь, мне <i><b>похуй</b></i> я жду команды /start')
     await message.answer(f'Ты написал {message.text}.\n Я жду команду /start')
