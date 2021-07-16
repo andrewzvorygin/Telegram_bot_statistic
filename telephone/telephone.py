@@ -87,12 +87,9 @@ async def dump_all_participants(channel):
         if type(user.status) == types.UserStatusRecently:
             users_recently += 1
         elif type(user.status) == types.UserStatusOffline:
-            if abs(user.status.was_online.hour - datetime.now().hour + 5) >= 1 \
-                    and user.status.was_online.minute <= datetime.now().minute \
-                    and abs(user.status.was_online.day - datetime.now().day) > 1:
-                continue
-            else:
-                users_online += 1
+            if type(user.status) == types.UserStatusOffline:
+                if datetime.now().timestamp() - user.status.was_online.timestamp() <= 3600:
+                    users_online += 1
     users_offline = len(all_participants) - users_online - users_recently
     print(f"пользователей онлайн: {users_online}")
     print(f"пользователей, которые \"были недавно\": {users_recently}")
