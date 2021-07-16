@@ -5,18 +5,28 @@ import asyncio
 async def create_db(chat):
     async with aiosqlite.connect("user_online.db") as db:
         await db.execute(f"""CREATE TABLE IF NOT EXISTS {chat} (
-                        date_time text NOT NULL, 
-                        count_user_online int NOT NULL, 
-                        count_user int NOT NULL,
-                        percentage_of_users REAL NOT NULL);
+                        день text NOT NULL, 
+                        время text NOT NULL,
+                        пользователей онлайн int NOT NULL, 
+                        количество пользователей int NOT NULL,
+                        количество пидорасов с невидимкой int NOT NULL,
+                        процент онлайн REAL NOT NULL);
                    """)
         await db.commit()
 
 
-async def insert_values_db(chat, date_time, count_user_online, count_user, percentage_of_users):
-    args = (date_time, count_user_online, count_user, percentage_of_users)
+async def async_fill_db(chat):
+    while True:
+        day = datetime.date.today()
+        time = datetime.datetime.now()
+        user_online, count_user, pidr, percentage_users = await noname()
+        await insert_values_db(chat=chat, args=(day, time, user_online, count_user, pidr, percentage_users))
+        yield asyncio.sleep(300)
+
+
+async def insert_values_db(chat, args):
     async with aiosqlite.connect("user_online.db") as db:
-        sqlite_insert = f"""INSERT INTO {chat} (date_time, count_user_online, count_user, percentage_of_users) VALUES (?, ?, ?, ?);"""
+        sqlite_insert = f"""INSERT INTO {chat} VALUES (?, ?, ?, ?, ?, ?);"""
         await db.execute(sqlite_insert, args)
         await db.commit()
 
@@ -29,15 +39,19 @@ async def read_values_db(chat):
     return rows
 
 
-async def main():
-    chat = 'test'
-    await create_db(chat)
-    await insert_values_db(chat, '2021-07-14 18:00:00:000', 4, 10, 0.4)
-    await insert_values_db(chat, '2021-07-14 19:00:00:000', 6, 10, 0.6)
-    answer = await  read_values_db(chat)
-    print(answer)
+async def noname():
+    pass
 
-asyncio.run(main())
+
+# async def main():
+#     chat = 'test'
+#     await create_db(chat)
+#     await insert_values_db(chat, ('2021-07-14',  '18:00:00:000', 4, 10, 0.4))
+#     await insert_values_db(chat, ('2021-07-14',  '19:00:00:000', 6, 10, 0.6))
+#     answer = await read_values_db(chat)
+#     print(answer)
+#
+# asyncio.run(main())
 
 
 import datetime
@@ -72,8 +86,7 @@ async def dump_all_participants(channel):
     for user in all_participants:
         if type(user.status) == types.UserStatusRecently:
             users_recently += 1
-            continue
-        if type(user.status) == types.UserStatusOffline:
+        elif type(user.status) == types.UserStatusOffline:
             if abs(user.status.was_online.hour - datetime.now().hour + 5) >= 1 \
                     and user.status.was_online.minute <= datetime.now().minute \
                     and abs(user.status.was_online.day - datetime.now().day) > 1:
@@ -85,12 +98,3 @@ async def dump_all_participants(channel):
     print(f"пользователей, которые \"были недавно\": {users_recently}")
     print(f"пользователей не в сети: {users_offline}")
 
-
-async def main():
-    url = input("Введите ссылку на канал или чат: ")
-    channel = await client.get_entity(url)
-    await dump_all_participants(channel)
-
-
-with client:
-    client.loop.run_until_complete(main())

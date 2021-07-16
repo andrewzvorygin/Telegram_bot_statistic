@@ -15,4 +15,6 @@ count_user = InlineKeyboardButton(text='Количество пользоват�
 state_stat.insert(count_user)
 number_views_record = InlineKeyboardButton(text='Число просмотров постов', callback_data='number_views_record')
 state_stat.insert(number_views_record)
+better_time = InlineKeyboardButton(text='Лучшее время публикации', callback_data='better_time')
+state_stat.insert(better_time)
 state_stat.insert(close)

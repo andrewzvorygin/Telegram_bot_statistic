@@ -9,6 +9,7 @@ from aiogram.dispatcher.filters import Text
 import logging
 from telephone.prob import get_graph_path
 from os import remove
+from telephone import telephone
 
 
 @dp.message_handler(commands=["start"])
@@ -26,7 +27,7 @@ async def get_channel(message: Message, state: FSMContext):
         short_url = '@' + url.split('/')[-1]
     else:
         short_url = url
-    await state.update_data(url=short_url)
+    await state.update_data(url=short_url[1:])
     logging.info(f'Получили ссылку на канал url : {url} \n short_url : {short_url}')
     await message.answer(f'Вы запросили информацию о канале {short_url}', reply_markup=choice)
     logging.info('Запросили подтверждение сбора статистики о канале')
@@ -40,10 +41,14 @@ async def false_channel(call: CallbackQuery):
 
 
 @dp.callback_query_handler(text_contains="yes", state=Statistic.ChoiceChannel)
-async def true_channel(call: CallbackQuery):
+async def true_channel(call: CallbackQuery, state: FSMContext):
     logging.info('Верный канал, выбор действия')
     await call.answer(cache_time=60)
+    data = await state.get_data()
+    chat = data['url']
+    await telephone.create_db(chat)
     await call.message.answer('Статистику чего вы хотите изучить?', reply_markup=state_stat)
+    telephone.async_fill_db(chat)
 
 
 @dp.callback_query_handler(text_contains="count_user", state=Statistic.ChoiceChannel)
@@ -54,6 +59,17 @@ async def choice_count_day(call: CallbackQuery, state: FSMContext):
     await Statistic.UserCountChange.set()
     await call.message.answer('За какое количество дней вы хотите получить статистику о пользователях?\n'
                               'Выбери из предложенного или введи своё значение', reply_markup=count_day)
+
+
+@dp.callback_query_handler(text_contains="better_time", state=Statistic.ChoiceChannel)
+async def get_better_time(call: CallbackQuery, state: FSMContext):
+    logging.info('Выборали лучшее время')
+    await call.answer(cache_time=60)
+    await Statistic.BetterTime.set()
+    data = await state.get_data()
+    chat = data['url']
+    rows = await telephone.read_values_db(chat)
+    await call.message.answer(rows)
 
 
 # После этот метод должен возвращать статистку по количеству пользователей за выбранный период

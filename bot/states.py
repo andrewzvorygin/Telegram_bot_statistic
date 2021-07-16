@@ -6,3 +6,4 @@ class Statistic(StatesGroup):
     NumberViewsRecord = State()
     ChoiceChannel = State()
     RecordInterval = State()
+    BetterTime = State()
