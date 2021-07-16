@@ -19,7 +19,7 @@ async def async_fill_db(chat):
     while True:
         day = datetime.date.today()
         time = datetime.datetime.now()
-        user_online, count_user, pidr = await noname()
+        user_online, count_user, pidr = await dump_all_participants("@" + chat)
         await insert_values_db(chat=chat, args=(day, time, user_online, count_user, pidr))
         yield asyncio.sleep(300)
 
