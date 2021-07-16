@@ -10,7 +10,7 @@ async def create_db(chat):
                         пользователей онлайн int NOT NULL, 
                         количество пользователей int NOT NULL,
                         количество пидорасов с невидимкой int NOT NULL,
-                        процент онлайн REAL NOT NULL);
+                        );
                    """)
         await db.commit()
 
@@ -19,14 +19,14 @@ async def async_fill_db(chat):
     while True:
         day = datetime.date.today()
         time = datetime.datetime.now()
-        user_online, count_user, pidr, percentage_users = await noname()
-        await insert_values_db(chat=chat, args=(day, time, user_online, count_user, pidr, percentage_users))
+        user_online, count_user, pidr = await noname()
+        await insert_values_db(chat=chat, args=(day, time, user_online, count_user, pidr))
         yield asyncio.sleep(300)
 
 
 async def insert_values_db(chat, args):
     async with aiosqlite.connect("user_online.db") as db:
-        sqlite_insert = f"""INSERT INTO {chat} VALUES (?, ?, ?, ?, ?, ?);"""
+        sqlite_insert = f"""INSERT INTO {chat} VALUES (?, ?, ?, ?, ?);"""
         await db.execute(sqlite_insert, args)
         await db.commit()
 
@@ -97,4 +97,5 @@ async def dump_all_participants(channel):
     print(f"пользователей онлайн: {users_online}")
     print(f"пользователей, которые \"были недавно\": {users_recently}")
     print(f"пользователей не в сети: {users_offline}")
+    return users_online, len(all_participants), users_recently
 
