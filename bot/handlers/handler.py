@@ -9,7 +9,8 @@ from aiogram.dispatcher.filters import Text
 import logging
 from telephone.prob import get_graph_path
 from os import remove
-from telephone import telephone
+# from telephone import telephone
+from telephone.telephone import dump_all_participants
 
 
 @dp.message_handler(commands=["start"])
@@ -46,9 +47,9 @@ async def true_channel(call: CallbackQuery, state: FSMContext):
     await call.answer(cache_time=60)
     data = await state.get_data()
     chat = data['url']
-    await telephone.create_db(chat)
+    # await telephone.create_db(chat)
     await call.message.answer('Статистику чего вы хотите изучить?', reply_markup=state_stat)
-    telephone.async_fill_db(chat)
+    # telephone.async_fill_db(chat)
 
 
 @dp.callback_query_handler(text_contains="count_user", state=Statistic.ChoiceChannel)
@@ -68,8 +69,18 @@ async def get_better_time(call: CallbackQuery, state: FSMContext):
     await Statistic.BetterTime.set()
     data = await state.get_data()
     chat = data['url']
-    rows = await telephone.read_values_db(chat)
-    await call.message.answer(rows)
+    users_online, count_user, users_recently = await dump_all_participants(chat)
+    r = users_online / count_user
+    if r >= 0.5:
+        await call.message.answer(f'Сейчас в сети {round(r * 100, 2)}% подписчиков канала, публиковать точно стоит, большинство подписчиков сейчас в сети')
+    elif r > 0.35:
+        await call.message.answer(
+            f'Сейчас в сети {round(r * 100, 2)} подписчиков канала, думаю, опубликовать стоит, но отклик будет небольшим')
+    else:
+        await call.message.answer(f'Сейчас в сети {round(r * 100, 2)}% подписчиков канала, публиковать пост не стоит ')
+    # rows = await telephone.read_values_db(chat)
+    # logging.info(rows)
+    # await call.message.answer(rows)
 
 
 # После этот метод должен возвращать статистку по количеству пользователей за выбранный период
@@ -146,9 +157,6 @@ async def get_graph_id_record(message: Message, state: FSMContext = None):
             remove(path)
     except Exception:
         await message.answer('Неверно указан интервал', reply_markup=close_all)
-
-
-
 
 
 @dp.message_handler()
