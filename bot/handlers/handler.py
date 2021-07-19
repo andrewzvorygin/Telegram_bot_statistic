@@ -75,7 +75,7 @@ async def get_better_time(call: CallbackQuery, state: FSMContext):
         await call.message.answer(f'Сейчас в сети {round(r * 100, 2)}% подписчиков канала, публиковать точно стоит, большинство подписчиков сейчас в сети')
     elif r > 0.35:
         await call.message.answer(
-            f'Сейчас в сети {round(r * 100, 2)} подписчиков канала, думаю, опубликовать стоит, но отклик будет небольшим')
+            f'Сейчас в сети {round(r * 100, 2)}% подписчиков канала, думаю, опубликовать можно, но отклик будет небольшим')
     else:
         await call.message.answer(f'Сейчас в сети {round(r * 100, 2)}% подписчиков канала, публиковать пост не стоит ')
     # rows = await telephone.read_values_db(chat)
